@@ -1,0 +1,51 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.env
+*.venv
+.env
+.venv/
+.envrc
+*.sqlite3
+
+# Logs
+*.log
+
+# VS Code
+.vscode/
+
+# Jupyter/Colab
+.ipynb_checkpoints/
+
+# Airflow
+airflow.cfg
+airflow.db
+unittests.cfg
+.venv/
+.dags/
+logs/
+*.pid
+
+# Docker
+*.pid
+*.pid.lock
+*.tar
+*.gz
+.dockerignore
+
+# GCP - chaves e arquivos sensíveis
+chaves/
+**/chaves/*
+*.json
+
+# Parquet e arquivos processados
+*.parquet
+data/raw/
+data/processed/
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+desktop.ini
