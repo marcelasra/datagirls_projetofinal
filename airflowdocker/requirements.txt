@@ -1,0 +1,4 @@
+kaggle==1.5.13
+pandas
+pyarrow
+google-cloud-storage
