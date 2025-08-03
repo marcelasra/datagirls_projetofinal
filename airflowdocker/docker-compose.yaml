@@ -1,4 +1,5 @@
 version: "3.9"
+
 services:
   postgres:
     image: postgres:13
@@ -22,6 +23,7 @@ services:
       AIRFLOW__WEBSERVER__EXPOSE_CONFIG: 'true'
       AIRFLOW__WEBSERVER__SECRET_KEY: "minha-chave-secreta-123"
       AIRFLOW__LOGGING__REMOTE_LOGGING: "False"
+      AIRFLOW__LOGGING__BASE_LOG_FOLDER: /opt/airflow/logs
       KAGGLE_CONFIG_DIR: /opt/airflow/chaves
       _PIP_ADDITIONAL_REQUIREMENTS: "-r /opt/airflow/requirements.txt"
     volumes:
@@ -30,6 +32,7 @@ services:
       - ../scripts:/opt/airflow/scripts
       - ../data:/opt/airflow/data
       - ../chaves:/opt/airflow/chaves
+      - ./logs:/opt/airflow/logs
     ports:
       - "8080:8080"
     command: webserver
@@ -45,6 +48,7 @@ services:
       AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
       AIRFLOW__WEBSERVER__SECRET_KEY: "minha-chave-secreta-123"
       AIRFLOW__LOGGING__REMOTE_LOGGING: "False"
+      AIRFLOW__LOGGING__BASE_LOG_FOLDER: /opt/airflow/logs
       KAGGLE_CONFIG_DIR: /opt/airflow/chaves
       _PIP_ADDITIONAL_REQUIREMENTS: "-r /opt/airflow/requirements.txt"
     volumes:
@@ -53,6 +57,7 @@ services:
       - ../scripts:/opt/airflow/scripts
       - ../data:/opt/airflow/data
       - ../chaves:/opt/airflow/chaves
+      - ./logs:/opt/airflow/logs
     command: scheduler
 
 volumes:

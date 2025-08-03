@@ -4,13 +4,12 @@ from datetime import datetime
 import sys
 import os
 
-# Adiciona o diretório dos scripts ao path do Python
 sys.path.append("/opt/airflow/scripts")
 
-# Importa as funções dos seus scripts
 from extract import download_dataset
 from transform import transform_data
 from load import upload_to_gcs
+from load_to_bigquery import load_parquet_to_bigquery
 
 # Define a DAG
 with DAG(
@@ -37,5 +36,10 @@ with DAG(
         python_callable=upload_to_gcs
     )
 
-    # Define a ordem: extract → transform → load
-    t1 >> t2 >> t3
+    t4 = PythonOperator(
+        task_id="load_to_bigquery",
+        python_callable=load_parquet_to_bigquery
+    )
+
+    # Define a ordem: extract → transform → load → bigquery
+    t1 >> t2 >> t3 >> t4
