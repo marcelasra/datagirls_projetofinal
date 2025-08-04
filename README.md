@@ -1,107 +1,126 @@
-# 📊 Projeto ETL – DataGirls Projeto Final
+# Projeto Final - Engenharia de Dados | Data Girls 👩🏾‍💻
 
-Pipeline completo de engenharia de dados desenvolvido com foco em automação, transformação e visualização dos dados de RH da IBM. O objetivo é monitorar métricas de rotatividade e fornecer insights valiosos para a área de Recursos Humanos.
+Este projeto tem como objetivo aplicar os conhecimentos adquiridos no bootcamp de Engenharia de Dados da comunidade [Data Girls](https://www.datagirls.com.br/), utilizando ferramentas modernas para desenvolver um pipeline ETL completo, com orquestração via Apache Airflow, armazenamento no Google Cloud Storage, análise no BigQuery e visualizações com Looker Studio.
 
-## 📁 Estrutura do Projeto
+## 🔍 Descrição
+
+O projeto utiliza o dataset [IBM HR Analytics Employee Attrition & Performance](https://www.kaggle.com/datasets/pavansubhasht/ibm-hr-analytics-attrition-performance), que trata da rotatividade de funcionários com base em dados de RH. A proposta é extrair, transformar e carregar esses dados em um bucket do GCP e posteriormente no BigQuery, a fim de gerar análises e insights por meio de visualizações.
+
+---
+
+## 🧱 Tecnologias utilizadas
+
+- **Python 3.10** – manipulação e transformação de dados
+- **Pandas** – tratamento e tradução dos dados
+- **Apache Airflow 2.7.2** – orquestração de tarefas com `docker-compose`
+- **Docker Desktop 4.42.1** – containerização e execução local
+- **Google Cloud Platform (GCP)** – armazenamento e análise dos dados
+  - Google Cloud Storage
+  - BigQuery
+- **Looker Studio** – visualizações e dashboard interativo
+
+---
+
+## 🗂️ Organização do Projeto
 
 ```
+datagirls_projetofinal/
 ├── airflowdocker/
 │   ├── dags/
 │   │   └── etl_datagirlspfinal.py
 │   ├── scripts/
 │   │   ├── extract.py
 │   │   ├── transform.py
-│   │   └── load.py
-│   ├── docker-compose.yaml
-│   └── requirements.txt
+│   │   ├── load.py
+│   │   └── load_to_bigquery.py
+│   ├── requirements.txt
+│   └── docker-compose.yaml
 ├── data/
 │   ├── raw/
+│   │   └── WA_Fn-UseC_-HR-Employee-Attrition.csv
 │   └── processed/
+│       └── dados_transformados.parquet
 ├── chaves/
 │   ├── kaggle.json
 │   └── gcp_service_account.json
+└── README.md
 ```
 
-## 🚀 Tecnologias Utilizadas
+---
 
-- **Apache Airflow** v2.7.2
-- **Docker** + Docker Compose
-- **Python** v3.10
-- **Pandas** e **PyArrow**
-- **Kaggle API**
-- **Google Cloud Storage (GCS)**
-- **BigQuery (planejado)**
-- **Power BI ou Looker Studio (para visualização)**
+## ⚙️ Pipeline ETL
 
-## ⚙️ Execução do Pipeline
+O pipeline é composto por quatro etapas, agendadas para rodar diariamente (`@daily`):
 
-### Pré-requisitos
+1. **`extract.py`**: Faz o download automático do dataset no Kaggle.
+2. **`transform.py`**: Remove colunas irrelevantes, trata nulos e traduz todas as colunas e valores para português.
+3. **`load.py`**: Envia os dados transformados (`.parquet`) para o bucket no GCP.
+4. **`load_to_bigquery.py`**: Carrega o arquivo `.parquet` do bucket para o BigQuery, dentro do conjunto `carbide-eye-466719-s1.datagirls_projetofinal`.
 
-- Docker + Docker Compose
-- Conta no [Kaggle](https://www.kaggle.com/) e chave `kaggle.json`
-- Conta e bucket criado no GCP
+---
 
-### Passo a passo
+## 🔤 Tradução dos dados
 
-1. Clone o repositório:
-   ```bash
-   git clone https://github.com/seuusuario/datagirls_projetofinal.git
-   cd datagirls_projetofinal/airflowdocker
-   ```
+A etapa de transformação inclui:
 
-2. Execute:
-   ```bash
-   docker compose up --build
-   ```
+- Tradução de colunas como `Age` → `idade`, `JobRole` → `cargo`, etc.
+- Tradução de valores categóricos como:
+  - `BusinessTravel`: `"travel_rarely"` → `"raramente"`, `"travel_frequently"` → `"frequentemente"`, `"non_travel"` → `"não viaja"`
+  - `Department`: `"sales"` → `"vendas"`, `"research & development"` → `"pesquisa e desenvolvimento"`
+  - `MaritalStatus`: `"single"` → `"solteiro(a)"`, `"married"` → `"casado(a)"`, `"divorced"` → `"divorciado(a)"`
+  - `JobRole`, `EducationField`, entre outras, foram todas traduzidas
 
-3. Acesse o Airflow via [http://localhost:8080](http://localhost:8080)  
-   Usuário padrão: `airflow`  
-   Senha: `airflow`
+---
 
-4. Inicie manualmente a DAG `etl_datagirlspfinal`.
+## ☁️ GCP
 
-## 🧠 Lógica do ETL
+- **Bucket criado:** `etl_datagirlspfinal`
+- **Projeto:** `carbide-eye-466719-s1`
+- **Conjunto de dados no BigQuery:** `datagirls_projetofinal`
+- **Tabela:** `dados_transformados`
 
-### Extração (`extract.py`)
-- A API do Kaggle baixa o dataset de RH da IBM.
-- Os dados são descompactados e salvos em `data/raw`.
+---
 
-### Transformação (`transform.py`)
-- Remoção de colunas irrelevantes como `EmployeeCount`, `Over18`, `StandardHours`.
-- Padronização dos nomes das colunas (`snake_case`).
-- Conversão para `lowercase`.
-- Remoção de nulos e duplicados.
-- Dados transformados são salvos em `.parquet` em `data/processed`.
+## 📊 Dashboard
 
-### Carga (`load.py`)
-- O arquivo `dados_transformados.parquet` é enviado para o bucket `etl_datagirlspfinal` no GCS.
-- O script utiliza a conta de serviço do GCP via `google-cloud-storage`.
+A etapa de BI está sendo desenvolvida com **Looker Studio**, utilizando a tabela carregada no BigQuery. O dashboard exibirá métricas sobre:
 
-## ☁️ Integrações Finais (em desenvolvimento)
+- Rotatividade de funcionários (Attrition)
+- Perfil dos colaboradores por área, cargo, tempo de empresa, entre outros
 
-- Os dados carregados no GCS serão ingeridos no **BigQuery**.
-- As visualizações serão criadas via **Looker Studio** (gratuito) ou **Power BI**.
+*Link em breve...*
 
-## ❓Perguntas Norteadoras de Negócio
+---
 
-1. **Como a empresa pode monitorar a rotatividade de funcionários semanalmente?**  
-   → Com execução diária da DAG e integração com o BI, é possível gerar dashboards semanais com base nas saídas registradas.
+## ✅ Status do Projeto
 
-2. **Quais informações devem ser atualizadas em tempo real ou periodicamente?**  
-   → Neste projeto, a periodicidade ideal é diária, suficiente para detectar tendências de rotatividade com agilidade.
+- [x] Configuração do ambiente Docker + Airflow
+- [x] Script de extração via API do Kaggle
+- [x] Transformação e tradução completa dos dados
+- [x] Upload para o bucket no GCP
+- [x] Carga no BigQuery
+- [ ] Criação do dashboard Looker Studio
 
-3. **Como garantir que os dados estejam prontos para análises de forma confiável?**  
-   → A transformação remove ruídos, padroniza nomes e garante consistência estrutural, além de exportar para um formato leve (.parquet).
+---
 
-4. **É possível criar um modelo incremental com essa base?**  
-   → Sim, adaptando a lógica de extração para controlar modificações e utilizando marcas temporais (timestamps).
+## 💡 Aprendizados
 
-## 📌 Observações
+Durante o desenvolvimento deste projeto, foram consolidados conhecimentos em:
 
-- O pipeline é modular e preparado para escala.
-- A DAG `etl_datagirlspfinal` pode ser ajustada para ingestões mais frequentes ou acionadas por eventos.
+- Orquestração de pipelines com Airflow
+- Utilização da Kaggle API
+- Manipulação de dados com Pandas
+- Integração com GCP (Storage + BigQuery)
+- Organização de projeto de dados com boas práticas
 
-## 🙏 Agradecimentos
+---
 
-Este projeto foi desenvolvido por Marcela como parte do bootcamp de Engenharia de Dados promovido pela **comunidade Data Girls**.  
-Agradecimentos especiais às instrutoras e colegas que contribuíram ao longo do processo.
+## 🤝 Agradecimentos
+
+Este projeto foi desenvolvido por **Marcela** durante o bootcamp da [Data Girls](https://www.datagirls.com.br/). Agradecimentos especiais às instrutoras e à comunidade pela partilha de conhecimento e apoio contínuo. 💜
+
+---
+
+## 📝 Licença
+
+Este projeto é apenas para fins educacionais e não possui fins comerciais.
