@@ -4,9 +4,10 @@ import os
 def transform_data():
     print("Iniciando transformação dos dados...")
 
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    raw_path = os.path.join(base_dir, "../data/raw/WA_Fn-UseC_-HR-Employee-Attrition.csv")
-    processed_dir = os.path.join(base_dir, "../data/processed")
+    # Define caminhos dos arquivos
+    base_dir = os.getcwd()
+    raw_path = os.path.join(base_dir, "data/raw/WA_Fn-UseC_-HR-Employee-Attrition.csv")
+    processed_dir = os.path.join(base_dir, "data/processed")
     output_file = os.path.join(processed_dir, "dados_transformados.parquet")
 
     # Garante que a pasta de saída existe
@@ -16,7 +17,7 @@ def transform_data():
     df = pd.read_csv(raw_path)
     print(f"Dados carregados com {df.shape[0]} linhas e {df.shape[1]} colunas.")
 
-    # Remoção de colunas irrelevantes
+    # Remove colunas irrelevantes
     colunas_remover = ['EmployeeCount', 'Over18', 'StandardHours', 'EmployeeNumber']
     df.drop(columns=colunas_remover, inplace=True, errors='ignore')
 
@@ -24,7 +25,7 @@ def transform_data():
     df.drop_duplicates(inplace=True)
     df.dropna(inplace=True)
 
-    # Padroniza nomes
+    # Padroniza nomes das colunas
     df.columns = (
         df.columns
         .str.strip()
@@ -33,7 +34,11 @@ def transform_data():
         .str.replace('-', '_')
     )
 
-    #Renomeia as colunas de Inglês para Português/BR
+    # Converte colunas de texto para lowercase (evita erros na hora de mapear valores)
+    for col in df.select_dtypes(include='object').columns:
+        df[col] = df[col].str.lower()
+
+    # Renomeia as colunas para português
     df = df.rename(columns={
         'age': 'idade',
         'attrition': 'rotatividade',
@@ -68,50 +73,51 @@ def transform_data():
         'hourly_rate': 'salario_hora'
     })
 
-   # Traduções de valores
+    # Tradução dos valores
     df['rotatividade'] = df['rotatividade'].map({'yes': 'sim', 'no': 'não'})
     df['genero'] = df['genero'].map({'male': 'masculino', 'female': 'feminino'})
     df['hora_extra'] = df['hora_extra'].map({'yes': 'sim', 'no': 'não'})
 
     df['viagem_a_trabalho'] = df['viagem_a_trabalho'].map({
-        'Travel_Frequently': 'viagem_frequente',
-        'Travel_Rarely': 'viagem_rara',
-        'Non-Travel': 'sem_viagem'
+        'travel_frequently': 'viagem_frequente',
+        'travel_rarely': 'viagem_rara',
+        'non_travel': 'sem_viagem'
     })
 
     df['departamento'] = df['departamento'].map({
-        'Sales': 'vendas',
-        'Research & Development': 'pesquisa_e_desenvolvimento',
-        'Human Resources': 'recursos_humanos'
+        'sales': 'vendas',
+        'research_&_development': 'pesquisa_e_desenvolvimento',
+        'human_resources': 'recursos_humanos'
     })
 
     df['area_de_formacao'] = df['area_de_formacao'].map({
-        'Life Sciences': 'ciencias_biologicas',
-        'Medical': 'medicina',
-        'Marketing': 'marketing',
-        'Technical Degree': 'formacao_tecnica',
-        'Human Resources': 'recursos_humanos',
-        'Other': 'outra'
+        'life_sciences': 'ciencias_biologicas',
+        'medical': 'medicina',
+        'marketing': 'marketing',
+        'technical_degree': 'formacao_tecnica',
+        'human_resources': 'recursos_humanos',
+        'other': 'outra'
     })
 
     df['cargo'] = df['cargo'].map({
-        'Sales Executive': 'executivo_de_vendas',
-        'Research Scientist': 'cientista_de_pesquisa',
-        'Laboratory Technician': 'tecnico_de_laboratorio',
-        'Manufacturing Director': 'diretor_de_producao',
-        'Healthcare Representative': 'representante_saude',
-        'Manager': 'gerente',
-        'Sales Representative': 'representante_de_vendas',
-        'Research Director': 'diretor_de_pesquisa',
-        'Human Resources': 'recursos_humanos'
+        'sales_executive': 'executivo_de_vendas',
+        'research_scientist': 'cientista_de_pesquisa',
+        'laboratory_technician': 'tecnico_de_laboratorio',
+        'manufacturing_director': 'diretor_de_producao',
+        'healthcare_representative': 'representante_saude',
+        'manager': 'gerente',
+        'sales_representative': 'representante_de_vendas',
+        'research_director': 'diretor_de_pesquisa',
+        'human_resources': 'recursos_humanos'
     })
 
     df['estado_civil'] = df['estado_civil'].map({
-        'Single': 'solteiro',
-        'Married': 'casado',
-        'Divorced': 'divorciado'
+        'single': 'solteiro',
+        'married': 'casado',
+        'divorced': 'divorciado'
     })
-    
+
+    # Salva os dados transformados
     df.to_parquet(output_file, index=False)
 
     print("Transformação concluída!")
