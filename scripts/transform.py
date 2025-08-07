@@ -5,9 +5,9 @@ def transform_data():
     print("Iniciando transformação dos dados...")
 
     # Define caminhos dos arquivos
-    base_dir = os.getcwd()
-    raw_path = os.path.join(base_dir, "data/raw/WA_Fn-UseC_-HR-Employee-Attrition.csv")
-    processed_dir = os.path.join(base_dir, "data/processed")
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    raw_path = os.path.abspath(os.path.join(base_dir, "../data/raw/WA_Fn-UseC_-HR-Employee-Attrition.csv"))
+    processed_dir = os.path.abspath(os.path.join(base_dir, "../data/processed"))
     output_file = os.path.join(processed_dir, "dados_transformados.parquet")
 
     # Garante que a pasta de saída existe
@@ -25,98 +25,94 @@ def transform_data():
     df.drop_duplicates(inplace=True)
     df.dropna(inplace=True)
 
-    # Padroniza nomes das colunas
-    df.columns = (
-        df.columns
-        .str.strip()
-        .str.lower()
-        .str.replace(' ', '_')
-        .str.replace('-', '_')
-    )
-
-    # Converte colunas de texto para lowercase (evita erros na hora de mapear valores)
-    for col in df.select_dtypes(include='object').columns:
-        df[col] = df[col].str.lower()
-
-    # Renomeia as colunas para português
-    df = df.rename(columns={
-        'age': 'idade',
-        'attrition': 'rotatividade',
-        'business_travel': 'viagem_a_trabalho',
-        'daily_rate': 'salario_diario',
-        'department': 'departamento',
-        'distance_from_home': 'distancia_de_casa',
-        'education': 'escolaridade',
-        'education_field': 'area_de_formacao',
-        'environment_satisfaction': 'satisfacao_ambiente',
-        'gender': 'genero',
-        'job_involvement': 'envolvimento_trabalho',
-        'job_level': 'nivel_trabalho',
-        'job_role': 'cargo',
-        'job_satisfaction': 'satisfacao_trabalho',
-        'marital_status': 'estado_civil',
-        'monthly_income': 'salario_mensal',
-        'monthly_rate': 'salario_mensal_bruto',
-        'num_companies_worked': 'num_empresas_trabalhadas',
-        'overtime': 'hora_extra',
-        'percent_salary_hike': 'percentual_aumento_salarial',
-        'performance_rating': 'avaliacao_desempenho',
-        'relationship_satisfaction': 'satisfacao_relacionamento',
-        'stock_option_level': 'nivel_opcao_acao',
-        'total_working_years': 'anos_experiencia_total',
-        'training_times_last_year': 'cursos_ultimo_ano',
-        'work_life_balance': 'equilibrio_vida_trabalho',
-        'years_at_company': 'anos_na_empresa',
-        'years_in_current_role': 'anos_no_cargo_atual',
-        'years_since_last_promotion': 'anos_desde_ultima_promocao',
-        'years_with_curr_manager': 'anos_com_gerente_atual',
-        'hourly_rate': 'salario_hora'
+    # --- ETAPA CRÍTICA: Mapeamento de valores usando os nomes ORIGINAIS das colunas ---
+    df['Attrition'] = df['Attrition'].map({'Yes': 'Sim', 'No': 'Não'})
+    df['Gender'] = df['Gender'].map({'Male': 'Masculino', 'Female': 'Feminino'})
+    df['OverTime'] = df['OverTime'].map({'Yes': 'Sim', 'No': 'Não'})
+    
+    df['BusinessTravel'] = df['BusinessTravel'].map({
+        'Travel_Frequently': 'Viagem Frequente',
+        'Travel_Rarely': 'Viagem Rara',
+        'Non-Travel': 'Sem Viagem'
     })
 
-    # Tradução dos valores
-    df['rotatividade'] = df['rotatividade'].map({'yes': 'sim', 'no': 'não'})
-    df['genero'] = df['genero'].map({'male': 'masculino', 'female': 'feminino'})
-    df['hora_extra'] = df['hora_extra'].map({'yes': 'sim', 'no': 'não'})
-
-    df['viagem_a_trabalho'] = df['viagem_a_trabalho'].map({
-        'travel_frequently': 'viagem_frequente',
-        'travel_rarely': 'viagem_rara',
-        'non_travel': 'sem_viagem'
+    df['Department'] = df['Department'].map({
+        'Sales': 'Vendas',
+        'Research & Development': 'Pesquisa e Desenvolvimento',
+        'Human Resources': 'Recursos Humanos'
+    })
+    
+    df['EducationField'] = df['EducationField'].map({
+        'Life Sciences': 'Ciências Biológicas',
+        'Medical': 'Medicina',
+        'Marketing': 'Marketing',
+        'Technical Degree': 'Formação Técnica',
+        'Human Resources': 'Recursos Humanos',
+        'Other': 'Outra'
     })
 
-    df['departamento'] = df['departamento'].map({
-        'sales': 'vendas',
-        'research_&_development': 'pesquisa_e_desenvolvimento',
-        'human_resources': 'recursos_humanos'
+    df['JobRole'] = df['JobRole'].map({
+        'Sales Executive': 'Executivo de Vendas',
+        'Research Scientist': 'Cientista de Pesquisa',
+        'Laboratory Technician': 'Técnico de Laboratório',
+        'Manufacturing Director': 'Diretor de Produção',
+        'Healthcare Representative': 'Representante de Saúde',
+        'Manager': 'Gerente',
+        'Sales Representative': 'Representante de Vendas',
+        'Research Director': 'Diretor de Pesquisa',
+        'Human Resources': 'Recursos Humanos'
     })
 
-    df['area_de_formacao'] = df['area_de_formacao'].map({
-        'life_sciences': 'ciencias_biologicas',
-        'medical': 'medicina',
-        'marketing': 'marketing',
-        'technical_degree': 'formacao_tecnica',
-        'human_resources': 'recursos_humanos',
-        'other': 'outra'
+    df['MaritalStatus'] = df['MaritalStatus'].map({
+        'Single': 'Solteiro',
+        'Married': 'Casado',
+        'Divorced': 'Divorciado'
     })
 
-    df['cargo'] = df['cargo'].map({
-        'sales_executive': 'executivo_de_vendas',
-        'research_scientist': 'cientista_de_pesquisa',
-        'laboratory_technician': 'tecnico_de_laboratorio',
-        'manufacturing_director': 'diretor_de_producao',
-        'healthcare_representative': 'representante_saude',
-        'manager': 'gerente',
-        'sales_representative': 'representante_de_vendas',
-        'research_director': 'diretor_de_pesquisa',
-        'human_resources': 'recursos_humanos'
-    })
-
-    df['estado_civil'] = df['estado_civil'].map({
-        'single': 'solteiro',
-        'married': 'casado',
-        'divorced': 'divorciado'
-    })
-
+    # Mapeamento para colunas numéricas categorizadas
+    df['Education'] = df['Education'].map({1: 'Abaixo da Faculdade', 2: 'Faculdade', 3: 'Bacharelado', 4: 'Mestrado', 5: 'Doutorado'})
+    df['EnvironmentSatisfaction'] = df['EnvironmentSatisfaction'].map({1: 'Muito Baixo', 2: 'Baixo', 3: 'Médio', 4: 'Alto'})
+    df['JobInvolvement'] = df['JobInvolvement'].map({1: 'Muito Baixo', 2: 'Baixo', 3: 'Médio', 4: 'Alto'})
+    df['JobSatisfaction'] = df['JobSatisfaction'].map({1: 'Muito Baixo', 2: 'Baixo', 3: 'Médio', 4: 'Alto'})
+    df['PerformanceRating'] = df['PerformanceRating'].map({3: 'Ótimo', 4: 'Excelente'})
+    df['RelationshipSatisfaction'] = df['RelationshipSatisfaction'].map({1: 'Muito Baixo', 2: 'Baixo', 3: 'Médio', 4: 'Alto'})
+    df['WorkLifeBalance'] = df['WorkLifeBalance'].map({1: 'Muito Baixo', 2: 'Baixo', 3: 'Médio', 4: 'Alto'})
+    
+    # --- ETAPA FINAL: Renomear todas as colunas de uma vez para português ---
+    df.rename(columns={
+        'Age': 'Idade',
+        'Attrition': 'Rotatividade',
+        'BusinessTravel': 'ViagemATrabalho',
+        'DailyRate': 'SalarioDiario',
+        'Department': 'Departamento',
+        'DistanceFromHome': 'DistanciaDeCasa',
+        'Education': 'Escolaridade',
+        'EducationField': 'AreaDeFormacao',
+        'EnvironmentSatisfaction': 'SatisfacaoAmbiente',
+        'Gender': 'Genero',
+        'HourlyRate': 'SalarioHora',
+        'JobInvolvement': 'EnvolvimentoTrabalho',
+        'JobLevel': 'NivelTrabalho',
+        'JobRole': 'Cargo',
+        'JobSatisfaction': 'SatisfacaoTrabalho',
+        'MaritalStatus': 'EstadoCivil',
+        'MonthlyIncome': 'SalarioMensal',
+        'MonthlyRate': 'SalarioMensalBruto',
+        'NumCompaniesWorked': 'NumEmpresasTrabalhadas',
+        'OverTime': 'HoraExtra',
+        'PercentSalaryHike': 'PercentualAumentoSalarial',
+        'PerformanceRating': 'AvaliacaoDesempenho',
+        'RelationshipSatisfaction': 'SatisfacaoRelacionamento',
+        'StockOptionLevel': 'NivelOpcaoAcao',
+        'TotalWorkingYears': 'AnosExperienciaTotal',
+        'TrainingTimesLastYear': 'CursosUltimoAno',
+        'WorkLifeBalance': 'EquilibrioVidaTrabalho',
+        'YearsAtCompany': 'AnosNaEmpresa',
+        'YearsInCurrentRole': 'AnosNoCargoAtual',
+        'YearsSinceLastPromotion': 'AnosDesdeUltimaPromocao',
+        'YearsWithCurrManager': 'AnosComGerenteAtual'
+    }, inplace=True)
+    
     # Salva os dados transformados
     df.to_parquet(output_file, index=False)
 
