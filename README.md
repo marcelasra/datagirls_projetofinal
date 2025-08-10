@@ -1,126 +1,86 @@
-# Projeto Final - Engenharia de Dados | Data Girls 👩🏾‍💻
+# Projeto DataGirls - Análise de Rotatividade de Funcionários
 
-Este projeto tem como objetivo aplicar os conhecimentos adquiridos no bootcamp de Engenharia de Dados da comunidade [Data Girls](https://www.datagirls.com.br/), utilizando ferramentas modernas para desenvolver um pipeline ETL completo, com orquestração via Apache Airflow, armazenamento no Google Cloud Storage, análise no BigQuery e visualizações com Looker Studio.
+## 1. Visão Geral
+Este projeto foi desenvolvido como parte do **bootcamp DataGirls** e tem como objetivo realizar a extração, transformação e carregamento (ETL) de dados relacionados à rotatividade de funcionários (dataset **IBM HR Analytics - Employee Attrition & Performance**), disponibilizando-os para análise em um dashboard no **Looker Studio**.
 
-## 🔍 Descrição
+O pipeline foi implementado utilizando **Python**, **Apache Airflow** (via Docker) e **Google Cloud Platform** (GCS e BigQuery).
 
-O projeto utiliza o dataset [IBM HR Analytics Employee Attrition & Performance](https://www.kaggle.com/datasets/pavansubhasht/ibm-hr-analytics-attrition-performance), que trata da rotatividade de funcionários com base em dados de RH. A proposta é extrair, transformar e carregar esses dados em um bucket do GCP e posteriormente no BigQuery, a fim de gerar análises e insights por meio de visualizações.
-
----
-
-## 🧱 Tecnologias utilizadas
-
-- **Python 3.10** – manipulação e transformação de dados
-- **Pandas** – tratamento e tradução dos dados
-- **Apache Airflow 2.7.2** – orquestração de tarefas com `docker-compose`
-- **Docker Desktop 4.42.1** – containerização e execução local
-- **Google Cloud Platform (GCP)** – armazenamento e análise dos dados
-  - Google Cloud Storage
-  - BigQuery
-- **Looker Studio** – visualizações e dashboard interativo
+Dashboard disponível em: [Acessar Dashboard](https://lookerstudio.google.com/reporting/4c51f089-1699-4ecb-bb05-adedb49ba6d5)
 
 ---
 
-## 🗂️ Organização do Projeto
+## 2. Arquitetura do Pipeline
 
-```
-datagirls_projetofinal/
-├── airflowdocker/
-│   ├── dags/
-│   │   └── etl_datagirlspfinal.py
-│   ├── scripts/
-│   │   ├── extract.py
-│   │   ├── transform.py
-│   │   ├── load.py
-│   │   └── load_to_bigquery.py
-│   ├── requirements.txt
-│   └── docker-compose.yaml
-├── data/
-│   ├── raw/
-│   │   └── WA_Fn-UseC_-HR-Employee-Attrition.csv
-│   └── processed/
-│       └── dados_transformados.parquet
-├── chaves/
-│   ├── kaggle.json
-│   └── gcp_service_account.json
-└── README.md
+```mermaid
+flowchart TD
+    A[Extração de Dados - CSV Kaggle] --> B[Transformação - Pandas]
+    B --> C[Armazenamento - GCS Bucket]
+    C --> D[Carregamento no BigQuery]
+    D --> E[Visualização - Looker Studio]
 ```
 
----
-
-## ⚙️ Pipeline ETL
-
-O pipeline é composto por quatro etapas, agendadas para rodar diariamente (`@daily`):
-
-1. **`extract.py`**: Faz o download automático do dataset no Kaggle.
-2. **`transform.py`**: Remove colunas irrelevantes, trata nulos e traduz todas as colunas e valores para português.
-3. **`load.py`**: Envia os dados transformados (`.parquet`) para o bucket no GCP.
-4. **`load_to_bigquery.py`**: Carrega o arquivo `.parquet` do bucket para o BigQuery, dentro do conjunto `carbide-eye-466719-s1.datagirls_projetofinal`.
+- **Extração:** Download do dataset original (formato CSV).
+- **Transformação:** Limpeza, padronização, tradução de colunas e valores categóricos.
+- **Armazenamento:** Upload do arquivo processado (`.parquet`) para o Google Cloud Storage.
+- **Carga:** Importação do `.parquet` para uma tabela no BigQuery.
+- **Visualização:** Criação de dashboards interativos no Looker Studio.
 
 ---
 
-## 🔤 Tradução dos dados
+## 3. Tecnologias Utilizadas
 
-A etapa de transformação inclui:
-
-- Tradução de colunas como `Age` → `idade`, `JobRole` → `cargo`, etc.
-- Tradução de valores categóricos como:
-  - `BusinessTravel`: `"travel_rarely"` → `"raramente"`, `"travel_frequently"` → `"frequentemente"`, `"non_travel"` → `"não viaja"`
-  - `Department`: `"sales"` → `"vendas"`, `"research & development"` → `"pesquisa e desenvolvimento"`
-  - `MaritalStatus`: `"single"` → `"solteiro(a)"`, `"married"` → `"casado(a)"`, `"divorced"` → `"divorciado(a)"`
-  - `JobRole`, `EducationField`, entre outras, foram todas traduzidas
+- **Linguagem:** Python 3.10
+- **Bibliotecas:** pandas, google-cloud-storage
+- **Orquestração:** Apache Airflow 2.7.2
+- **Infraestrutura:** Docker + docker-compose
+- **Nuvem:** Google Cloud Platform (GCS, BigQuery, Looker Studio)
 
 ---
 
-## ☁️ GCP
+## 4. Execução Local
 
-- **Bucket criado:** `etl_datagirlspfinal`
-- **Projeto:** `carbide-eye-466719-s1`
-- **Conjunto de dados no BigQuery:** `datagirls_projetofinal`
-- **Tabela:** `dados_transformados`
+### 4.1 Pré-requisitos
+- Python 3.10+
+- Docker e Docker Compose
+- Conta no Google Cloud com permissões para GCS e BigQuery
+- Credenciais JSON da conta de serviço do GCP
 
----
-
-## 📊 Dashboard
-
-A etapa de BI está sendo desenvolvida com **Looker Studio**, utilizando a tabela carregada no BigQuery. O dashboard exibirá métricas sobre:
-
-- Rotatividade de funcionários (Attrition)
-- Perfil dos colaboradores por área, cargo, tempo de empresa, entre outros
-
-*Link em breve...*
-
----
-
-## ✅ Status do Projeto
-
-- [x] Configuração do ambiente Docker + Airflow
-- [x] Script de extração via API do Kaggle
-- [x] Transformação e tradução completa dos dados
-- [x] Upload para o bucket no GCP
-- [x] Carga no BigQuery
-- [ ] Criação do dashboard Looker Studio
+### 4.2 Passos
+1. Clone este repositório
+```bash
+git clone https://github.com/seuusuario/seurepositorio.git
+```
+2. Suba o Airflow com Docker:
+```bash
+docker compose up -d
+```
+3. Coloque o arquivo CSV original em `data/raw/`
+4. Execute a DAG `etl_datagirlspfinal` no Airflow
 
 ---
 
-## 💡 Aprendizados
+## 5. Transformações Realizadas
 
-Durante o desenvolvimento deste projeto, foram consolidados conhecimentos em:
-
-- Orquestração de pipelines com Airflow
-- Utilização da Kaggle API
-- Manipulação de dados com Pandas
-- Integração com GCP (Storage + BigQuery)
-- Organização de projeto de dados com boas práticas
+- Remoção de colunas irrelevantes: `EmployeeCount`, `Over18`, `StandardHours`, `EmployeeNumber`
+- Remoção de duplicatas e valores nulos
+- Tradução de colunas e valores para português
+- Padronização de categorias numéricas para descritivas
+- Salvamento no formato `.parquet` para otimização de carregamento
 
 ---
 
-## 🤝 Agradecimentos
+## 6. Perguntas Norteadoras de Negócio
 
-Este projeto foi desenvolvido por **Marcela** durante o bootcamp da [Data Girls](https://www.datagirls.com.br/). Agradecimentos especiais às instrutoras e à comunidade pela partilha de conhecimento e apoio contínuo. 💜
+1. **Como a empresa pode monitorar a rotatividade de funcionários semanalmente?**
+   - Criando uma atualização agendada no pipeline para processar dados semanalmente e atualizar o dashboard automaticamente.
+2. **Quais informações devem ser atualizadas em tempo real ou periodicamente?**
+   - Rotatividade, salário mensal, satisfação no trabalho e indicadores de performance.
+3. **Como garantir que os dados estejam prontos para análises de forma confiável?**
+   - Utilizando processos automatizados de ETL e validação de dados antes do carregamento.
+4. **É possível criar um modelo incremental com essa base?**
+   - Sim, adaptando o ETL para ingestão apenas de novos registros.
 
 ---
 
-## 📝 Licença
-
-Este projeto é apenas para fins educacionais e não possui fins comerciais.
+## 7. Autoria
+Projeto desenvolvido por **Marcela** durante o bootcamp **DataGirls**.

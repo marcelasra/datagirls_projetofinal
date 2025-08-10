@@ -4,28 +4,28 @@ import os
 def transform_data():
     print("Iniciando transformação dos dados...")
 
-    # Define caminhos dos arquivos
+    #Define caminhos dos arquivos
     base_dir = os.path.dirname(os.path.abspath(__file__))
     raw_path = os.path.abspath(os.path.join(base_dir, "../data/raw/WA_Fn-UseC_-HR-Employee-Attrition.csv"))
     processed_dir = os.path.abspath(os.path.join(base_dir, "../data/processed"))
     output_file = os.path.join(processed_dir, "dados_transformados.parquet")
 
-    # Garante que a pasta de saída existe
+    #Garante que a pasta de saída existe
     os.makedirs(processed_dir, exist_ok=True)
 
-    # Carrega os dados brutos
+    #Carrega os dados brutos
     df = pd.read_csv(raw_path)
     print(f"Dados carregados com {df.shape[0]} linhas e {df.shape[1]} colunas.")
 
-    # Remove colunas irrelevantes
+    #Remove colunas irrelevantes
     colunas_remover = ['EmployeeCount', 'Over18', 'StandardHours', 'EmployeeNumber']
     df.drop(columns=colunas_remover, inplace=True, errors='ignore')
 
-    # Remove duplicatas e nulos
+    #Remove duplicatas e nulos
     df.drop_duplicates(inplace=True)
     df.dropna(inplace=True)
 
-    # --- ETAPA CRÍTICA: Mapeamento de valores usando os nomes ORIGINAIS das colunas ---
+    #Mapeamento de valores
     df['Attrition'] = df['Attrition'].map({'Yes': 'Sim', 'No': 'Não'})
     df['Gender'] = df['Gender'].map({'Male': 'Masculino', 'Female': 'Feminino'})
     df['OverTime'] = df['OverTime'].map({'Yes': 'Sim', 'No': 'Não'})
@@ -69,7 +69,7 @@ def transform_data():
         'Divorced': 'Divorciado'
     })
 
-    # Mapeamento para colunas numéricas categorizadas
+    #Mapeamento para colunas numéricas categorizadas
     df['Education'] = df['Education'].map({1: 'Abaixo da Faculdade', 2: 'Faculdade', 3: 'Bacharelado', 4: 'Mestrado', 5: 'Doutorado'})
     df['EnvironmentSatisfaction'] = df['EnvironmentSatisfaction'].map({1: 'Muito Baixo', 2: 'Baixo', 3: 'Médio', 4: 'Alto'})
     df['JobInvolvement'] = df['JobInvolvement'].map({1: 'Muito Baixo', 2: 'Baixo', 3: 'Médio', 4: 'Alto'})
@@ -78,7 +78,7 @@ def transform_data():
     df['RelationshipSatisfaction'] = df['RelationshipSatisfaction'].map({1: 'Muito Baixo', 2: 'Baixo', 3: 'Médio', 4: 'Alto'})
     df['WorkLifeBalance'] = df['WorkLifeBalance'].map({1: 'Muito Baixo', 2: 'Baixo', 3: 'Médio', 4: 'Alto'})
     
-    # --- ETAPA FINAL: Renomear todas as colunas de uma vez para português ---
+    #Renomear as colunas para português
     df.rename(columns={
         'Age': 'Idade',
         'Attrition': 'Rotatividade',
@@ -113,7 +113,7 @@ def transform_data():
         'YearsWithCurrManager': 'AnosComGerenteAtual'
     }, inplace=True)
     
-    # Salva os dados transformados
+    #Salvando os dados transformados
     df.to_parquet(output_file, index=False)
 
     print("Transformação concluída!")
