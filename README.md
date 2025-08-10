@@ -1,107 +1,86 @@
-# 📊 Projeto ETL – DataGirls Projeto Final
+# Projeto DataGirls - Análise de Rotatividade de Funcionários
 
-Pipeline completo de engenharia de dados desenvolvido com foco em automação, transformação e visualização dos dados de RH da IBM. O objetivo é monitorar métricas de rotatividade e fornecer insights valiosos para a área de Recursos Humanos.
+## 1. Visão Geral
+Este projeto foi desenvolvido como parte do **bootcamp DataGirls** e tem como objetivo realizar a extração, transformação e carregamento (ETL) de dados relacionados à rotatividade de funcionários (dataset **IBM HR Analytics - Employee Attrition & Performance**), disponibilizando-os para análise em um dashboard no **Looker Studio**.
 
-## 📁 Estrutura do Projeto
+O pipeline foi implementado utilizando **Python**, **Apache Airflow** (via Docker) e **Google Cloud Platform** (GCS e BigQuery).
 
-```
-├── airflowdocker/
-│   ├── dags/
-│   │   └── etl_datagirlspfinal.py
-│   ├── scripts/
-│   │   ├── extract.py
-│   │   ├── transform.py
-│   │   └── load.py
-│   ├── docker-compose.yaml
-│   └── requirements.txt
-├── data/
-│   ├── raw/
-│   └── processed/
-├── chaves/
-│   ├── kaggle.json
-│   └── gcp_service_account.json
+Dashboard disponível em: [Acessar Dashboard](https://lookerstudio.google.com/reporting/4c51f089-1699-4ecb-bb05-adedb49ba6d5)
+
+---
+
+## 2. Arquitetura do Pipeline
+
+```mermaid
+flowchart TD
+    A[Extração de Dados - CSV Kaggle] --> B[Transformação - Pandas]
+    B --> C[Armazenamento - GCS Bucket]
+    C --> D[Carregamento no BigQuery]
+    D --> E[Visualização - Looker Studio]
 ```
 
-## 🚀 Tecnologias Utilizadas
+- **Extração:** Download do dataset original (formato CSV).
+- **Transformação:** Limpeza, padronização, tradução de colunas e valores categóricos.
+- **Armazenamento:** Upload do arquivo processado (`.parquet`) para o Google Cloud Storage.
+- **Carga:** Importação do `.parquet` para uma tabela no BigQuery.
+- **Visualização:** Criação de dashboards interativos no Looker Studio.
 
-- **Apache Airflow** v2.7.2
-- **Docker** + Docker Compose
-- **Python** v3.10
-- **Pandas** e **PyArrow**
-- **Kaggle API**
-- **Google Cloud Storage (GCS)**
-- **BigQuery (planejado)**
-- **Power BI ou Looker Studio (para visualização)**
+---
 
-## ⚙️ Execução do Pipeline
+## 3. Tecnologias Utilizadas
 
-### Pré-requisitos
+- **Linguagem:** Python 3.10
+- **Bibliotecas:** pandas, google-cloud-storage
+- **Orquestração:** Apache Airflow 2.7.2
+- **Infraestrutura:** Docker + docker-compose
+- **Nuvem:** Google Cloud Platform (GCS, BigQuery, Looker Studio)
 
-- Docker + Docker Compose
-- Conta no [Kaggle](https://www.kaggle.com/) e chave `kaggle.json`
-- Conta e bucket criado no GCP
+---
 
-### Passo a passo
+## 4. Execução Local
 
-1. Clone o repositório:
-   ```bash
-   git clone https://github.com/seuusuario/datagirls_projetofinal.git
-   cd datagirls_projetofinal/airflowdocker
-   ```
+### 4.1 Pré-requisitos
+- Python 3.10+
+- Docker e Docker Compose
+- Conta no Google Cloud com permissões para GCS e BigQuery
+- Credenciais JSON da conta de serviço do GCP
 
-2. Execute:
-   ```bash
-   docker compose up --build
-   ```
+### 4.2 Passos
+1. Clone este repositório
+```bash
+git clone https://github.com/seuusuario/seurepositorio.git
+```
+2. Suba o Airflow com Docker:
+```bash
+docker compose up -d
+```
+3. Coloque o arquivo CSV original em `data/raw/`
+4. Execute a DAG `etl_datagirlspfinal` no Airflow
 
-3. Acesse o Airflow via [http://localhost:8080](http://localhost:8080)  
-   Usuário padrão: `airflow`  
-   Senha: `airflow`
+---
 
-4. Inicie manualmente a DAG `etl_datagirlspfinal`.
+## 5. Transformações Realizadas
 
-## 🧠 Lógica do ETL
+- Remoção de colunas irrelevantes: `EmployeeCount`, `Over18`, `StandardHours`, `EmployeeNumber`
+- Remoção de duplicatas e valores nulos
+- Tradução de colunas e valores para português
+- Padronização de categorias numéricas para descritivas
+- Salvamento no formato `.parquet` para otimização de carregamento
 
-### Extração (`extract.py`)
-- A API do Kaggle baixa o dataset de RH da IBM.
-- Os dados são descompactados e salvos em `data/raw`.
+---
 
-### Transformação (`transform.py`)
-- Remoção de colunas irrelevantes como `EmployeeCount`, `Over18`, `StandardHours`.
-- Padronização dos nomes das colunas (`snake_case`).
-- Conversão para `lowercase`.
-- Remoção de nulos e duplicados.
-- Dados transformados são salvos em `.parquet` em `data/processed`.
+## 6. Perguntas Norteadoras de Negócio
 
-### Carga (`load.py`)
-- O arquivo `dados_transformados.parquet` é enviado para o bucket `etl_datagirlspfinal` no GCS.
-- O script utiliza a conta de serviço do GCP via `google-cloud-storage`.
+1. **Como a empresa pode monitorar a rotatividade de funcionários semanalmente?**
+   - Criando uma atualização agendada no pipeline para processar dados semanalmente e atualizar o dashboard automaticamente.
+2. **Quais informações devem ser atualizadas em tempo real ou periodicamente?**
+   - Rotatividade, salário mensal, satisfação no trabalho e indicadores de performance.
+3. **Como garantir que os dados estejam prontos para análises de forma confiável?**
+   - Utilizando processos automatizados de ETL e validação de dados antes do carregamento.
+4. **É possível criar um modelo incremental com essa base?**
+   - Sim, adaptando o ETL para ingestão apenas de novos registros.
 
-## ☁️ Integrações Finais (em desenvolvimento)
+---
 
-- Os dados carregados no GCS serão ingeridos no **BigQuery**.
-- As visualizações serão criadas via **Looker Studio** (gratuito) ou **Power BI**.
-
-## ❓Perguntas Norteadoras de Negócio
-
-1. **Como a empresa pode monitorar a rotatividade de funcionários semanalmente?**  
-   → Com execução diária da DAG e integração com o BI, é possível gerar dashboards semanais com base nas saídas registradas.
-
-2. **Quais informações devem ser atualizadas em tempo real ou periodicamente?**  
-   → Neste projeto, a periodicidade ideal é diária, suficiente para detectar tendências de rotatividade com agilidade.
-
-3. **Como garantir que os dados estejam prontos para análises de forma confiável?**  
-   → A transformação remove ruídos, padroniza nomes e garante consistência estrutural, além de exportar para um formato leve (.parquet).
-
-4. **É possível criar um modelo incremental com essa base?**  
-   → Sim, adaptando a lógica de extração para controlar modificações e utilizando marcas temporais (timestamps).
-
-## 📌 Observações
-
-- O pipeline é modular e preparado para escala.
-- A DAG `etl_datagirlspfinal` pode ser ajustada para ingestões mais frequentes ou acionadas por eventos.
-
-## 🙏 Agradecimentos
-
-Este projeto foi desenvolvido por Marcela como parte do bootcamp de Engenharia de Dados promovido pela **comunidade Data Girls**.  
-Agradecimentos especiais às instrutoras e colegas que contribuíram ao longo do processo.
+## 7. Autoria
+Projeto desenvolvido por **Marcela** durante o bootcamp **DataGirls**.

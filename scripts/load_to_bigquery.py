@@ -33,7 +33,7 @@ def load_parquet_to_bigquery():
         )
 
     load_job.result()  # Aguarda a conclusão do job
-    print(f"✅ Arquivo carregado com sucesso na tabela: {table_ref}")
+    print(f" Arquivo carregado com sucesso na tabela: {table_ref}")
 
 if __name__ == "__main__":
     load_parquet_to_bigquery()
